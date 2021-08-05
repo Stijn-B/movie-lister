@@ -85,7 +85,7 @@ def process_movie_folder(movie_folder: Path, dst_folder: Path) -> Path:
     subtitle_files = [file for file in movie_folder.iterdir() if file.suffix in ['.srt']]
 
     # Select the largest movie file (assume smaller files are samples)
-    movie_file = max(movie_files, key=lambda file: str(file.stat().st_size))
+    movie_file = max(movie_files, key=lambda file: file.stat().st_size)
     dst_file = dst_folder / (sanitize_name(str(movie)) + movie_file.suffix)
 
     # if 'movie already has embedded subtitles'
