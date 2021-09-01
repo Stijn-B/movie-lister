@@ -43,7 +43,7 @@ def query_movie_data(movie_filename: str) -> Movie:
 
 # # # # # PROCESSING
 
-def process_folder_contents(src_folder: Path, dst_folder: Optional[Path]):
+def process_folder_contents(src_folder: Path, dst_folder: Optional[Path], delete_source: bool = False):
     """
     Cleans up all movie files and folders in the given directory; sanitizing names and embedding subtitle files.
     optional dst_folder: moves the results to this folder
@@ -53,11 +53,11 @@ def process_folder_contents(src_folder: Path, dst_folder: Optional[Path]):
             if path.suffix not in MOVIE_SUFFIXES:
                 continue
             print(f'file {path.name}')
-            result = process_movie_file(path, dst_folder)
+            result = process_movie_file(path, dst_folder, delete_source)
             print(f'=> {result.name}')
         elif path.is_dir():
             print(f'folder {path.name}')
-            result = process_movie_folder(path, dst_folder)
+            result = process_movie_folder(path, dst_folder, delete_source)
             print(f'=> {result.name}')
         else:
             raise FileNotFoundError
@@ -79,8 +79,8 @@ def process_movie_file(movie_file: Path, dst_folder: Optional[Path], delete_sour
     return dst_file
 
 
-def process_movie_folder(movie_folder: Path, dst_folder: Path) -> Path:
-    movie = query_movie_data(movie_folder.stem)
+def process_movie_folder(movie_folder: Path, dst_folder: Optional[Path], delete_source: bool = False) -> Path:
+    dst_folder = dst_folder or movie_folder
 
     # Determine the Movie and Subtitle files
     files = recursive_iterdir(movie_folder)
@@ -89,17 +89,21 @@ def process_movie_folder(movie_folder: Path, dst_folder: Path) -> Path:
 
     # Select the largest movie file (smaller files are probably samples)
     movie_file = max(movie_files, key=lambda file: file.stat().st_size)
-    dst_file = dst_folder / (sanitize_name(str(movie)) + movie_file.suffix)
 
     # if 'movie already has embedded subtitles'
     #   or 'there are no srt files'
     #   or 'file type can't be used to embed subtitles'
-    # then: just rename
-    if not subtitle_files or get_embedded_subtitles(movie_file) or movie_file.suffix not in ['.mp4', '.mkv']:
-        movie_file.rename(dst_file)
+    # -> process movie file without embedding subtitles
+    if get_embedded_subtitles(movie_file) \
+            or not subtitle_files \
+            or movie_file.suffix not in VALID_FFMPEG_SUFFIXES:
+        dst_file = process_movie_file(movie_file, dst_folder, delete_source)
     else:
+        movie = query_movie_data(movie_folder.stem)
+        dst_file = (dst_folder or movie_file.parent) / (sanitize_name(str(movie)) + movie_file.suffix)
         merge_all(movie_file, subtitle_files, dst_file)
 
-    shutil.rmtree(str(movie_folder))
+    if delete_source and movie_folder != dst_folder:
+        shutil.rmtree(str(movie_folder))
 
     return dst_file
