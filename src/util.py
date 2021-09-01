@@ -60,11 +60,11 @@ def parse_movie_name_from_string(raw_name: str) -> str:
     return movie_name
 
 
-def get_files(path: Path) -> Generator[Path]:
+def recursive_iterdir(path: Path) -> Generator[Path]:
     if path.is_file():
         yield path
     elif path.is_dir():
         for sub_path in path.iterdir():
-            get_files(sub_path)
+            recursive_iterdir(sub_path)
     else:
         raise FileNotFoundError({'message:' f'path.is_file() and path.is_dir() are both False'})

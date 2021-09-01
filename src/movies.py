@@ -5,7 +5,7 @@ from typing import Optional
 
 import imdb
 
-from src.util import parse_movie_name_from_string, get_files
+from src.util import parse_movie_name_from_string, recursive_iterdir
 from subtitles import get_embedded_subtitles, merge_all, VALID_FFMPEG_SUFFIXES
 from util import sanitize_name
 
@@ -53,7 +53,7 @@ def process_folder_contents(src_folder: Path, dst_folder: Optional[Path]):
             if path.suffix not in MOVIE_SUFFIXES:
                 continue
             print(f'file {path.name}')
-            result = sanitize_movie_filename(path, dst_folder)
+            result = process_movie_file(path, dst_folder)
             print(f'=> {result.name}')
         elif path.is_dir():
             print(f'folder {path.name}')
@@ -63,16 +63,18 @@ def process_folder_contents(src_folder: Path, dst_folder: Optional[Path]):
             raise FileNotFoundError
 
 
-def sanitize_movie_filename(movie_file: Path, dst_folder: Optional[Path]) -> Path:
+def process_movie_file(movie_file: Path, dst_folder: Optional[Path], delete_source: bool = False) -> Path:
     assert movie_file.suffix in MOVIE_SUFFIXES
 
-    dst_folder = dst_folder or movie_file.parent
-
+    # Determine filename to '<movie> (<year>)'
     movie = query_movie_data(movie_file.stem)
+    dst_file = (dst_folder or movie_file.parent) / (sanitize_name(str(movie)) + movie_file.suffix)
 
-    # Rename file to '<movie> (<year>)'
-    dst_file = dst_folder / (sanitize_name(str(movie)) + movie_file.suffix)
-    movie_file.rename(dst_file)
+    # File operations
+    if movie_file != dst_file:
+        shutil.copy(movie_file, dst_file)
+        if delete_source:
+            movie_file.unlink()
 
     return dst_file
 
@@ -81,7 +83,7 @@ def process_movie_folder(movie_folder: Path, dst_folder: Path) -> Path:
     movie = query_movie_data(movie_folder.stem)
 
     # Determine the Movie and Subtitle files
-    files = get_files(movie_folder)
+    files = recursive_iterdir(movie_folder)
     movie_files = [file for file in files if file.suffix in MOVIE_SUFFIXES]
     subtitle_files = [file for file in files if file.suffix in ['.srt']]
 
