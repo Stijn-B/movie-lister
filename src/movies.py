@@ -5,7 +5,7 @@ from typing import Optional
 
 import imdb
 
-from src.util import parse_movie_name_from_string
+from src.util import parse_movie_name_from_string, get_files
 from subtitles import get_embedded_subtitles, merge_all
 from util import sanitize_name
 
@@ -81,10 +81,11 @@ def process_movie_folder(movie_folder: Path, dst_folder: Path) -> Path:
     movie = query_movie_data(movie_folder.stem)
 
     # Determine the Movie and Subtitle files
-    movie_files = [file for file in movie_folder.iterdir() if file.suffix in ['.avi', '.mkv', '.mp4']]
-    subtitle_files = [file for file in movie_folder.iterdir() if file.suffix in ['.srt']]
+    files = get_files(movie_folder)
+    movie_files = [file for file in files if file.suffix in ['.avi', '.mkv', '.mp4']]
+    subtitle_files = [file for file in files if file.suffix in ['.srt']]
 
-    # Select the largest movie file (assume smaller files are samples)
+    # Select the largest movie file (smaller files are probably samples)
     movie_file = max(movie_files, key=lambda file: file.stat().st_size)
     dst_file = dst_folder / (sanitize_name(str(movie)) + movie_file.suffix)
 
