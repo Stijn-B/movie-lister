@@ -5,6 +5,8 @@ from typing import List, Optional
 
 from src.util import get_shared_prefix
 
+VALID_FFMPEG_SUFFIXES = ['.mp4', '.mkv']
+
 
 @dataclass
 class Subtitle:
@@ -78,7 +80,7 @@ def merge_all(video: Path, subtitle_files: List[Path], dest_file: Optional[Path]
         output.mp4
     """
 
-    assert dest_file.suffix in ['.mp4', '.mkv']
+    assert dest_file.suffix in VALID_FFMPEG_SUFFIXES
 
     subtitles = [Subtitle(sub.stem, sub) for sub in subtitle_files]
     subtitles = sanitize_subtitle_names(subtitles)
