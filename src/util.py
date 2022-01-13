@@ -46,12 +46,14 @@ def parse_movie_name_from_string(raw_name: str) -> str:
     """ Intended to parse a movie name from a torrent filename """
     raw_name = raw_name.replace('.', ' ').replace('_', ' ').replace('(', '').replace(')', '')
 
-    # Take words up to the first word that contains a number
+    # Take words up to the first word that contains a number (but if the first word contains a number, continue)
     name = []
+    first = True
     for word in raw_name.split(' '):
-        if string_contains_number(word):
+        if string_contains_number(word) and not first:
             break
         name.append(word)
+        first = False
     movie_name = ' '.join(name)
 
     # Remove everything between [] brackets
