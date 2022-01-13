@@ -1,9 +1,13 @@
-import imdb
 import shutil
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
+import imdb
+from selenium.webdriver.common.by import By
+
+from chromedriver import init_browser
 from subtitles import get_embedded_subtitles, merge_all, VALID_FFMPEG_SUFFIXES
 from util import parse_movie_name_from_string, recursive_iterdir, sanitize_name
 
@@ -23,7 +27,7 @@ class Movie:
 
 # # # # # IMDB API
 
-def query_movie_data(movie_filename: str) -> Movie:
+def query_movie_data_imdb(movie_filename: str) -> Movie:
     """
     Parses the filename and attempts to query the IMDB API for the official movie name and release year.
     """
@@ -37,6 +41,33 @@ def query_movie_data(movie_filename: str) -> Movie:
     result = results[0]
 
     return Movie(result['title'], result['year'])
+
+
+def query_movie_data_google(movie_filename: str) -> Movie:
+    """
+    Uses google search to determine the official movie name and release year.
+    """
+    global SELENIUM_BROWSER
+    if 'SELENIUM_BROWSER' not in globals():
+        SELENIUM_BROWSER = init_browser(headless=False)
+
+    # Search for imdb page of the movie
+    search_term = 'imdb ' + movie_filename.replace('.', ' ')
+    search_url = f'https://www.google.com/search?q={search_term.replace(" ", "+")}&hl=en'
+    SELENIUM_BROWSER.get(search_url)
+
+    # "iUh30" is class name of the first google search result irrespective of the keyword searched.
+    result = SELENIUM_BROWSER.find_element(By.CLASS_NAME, 'iUh30')
+    result.click()
+    time.sleep(1)
+
+    # Get title and year from imdb page
+    result = SELENIUM_BROWSER.find_element(By.CLASS_NAME, 'TitleHeader__TitleText-sc-1wu6n3d-0')
+    name = result.text
+    result = SELENIUM_BROWSER.find_element(By.CLASS_NAME, 'TitleBlockMetaData__ListItemText-sc-12ein40-2')
+    year = result.text
+
+    return Movie(name=name, year=int(year))
 
 
 # # # # # PROCESSING
@@ -65,7 +96,7 @@ def process_movie_file(movie_file: Path, dst_folder: Optional[Path], delete_sour
     assert movie_file.suffix in MOVIE_SUFFIXES
 
     # Determine filename to '<movie> (<year>)'
-    movie = query_movie_data(movie_file.stem)
+    movie = query_movie_data_google(movie_file.stem)
     dst_file = (dst_folder or movie_file.parent) / (sanitize_name(str(movie)) + movie_file.suffix)
 
     # File operations
@@ -97,7 +128,7 @@ def process_movie_folder(movie_folder: Path, dst_folder: Optional[Path], delete_
             or movie_file.suffix not in VALID_FFMPEG_SUFFIXES:
         dst_file = process_movie_file(movie_file, dst_folder, delete_source)
     else:
-        movie = query_movie_data(movie_folder.stem)
+        movie = query_movie_data_google(movie_folder.stem)
         dst_file = (dst_folder or movie_file.parent) / (sanitize_name(str(movie)) + movie_file.suffix)
         merge_all(movie_file, subtitle_files, dst_file)
 
