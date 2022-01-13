@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional
 
-from src.util import get_shared_prefix
+from util import get_shared_prefix
 
 VALID_FFMPEG_SUFFIXES = ['.mp4', '.mkv']
 

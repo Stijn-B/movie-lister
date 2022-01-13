@@ -1,13 +1,11 @@
+import imdb
 import shutil
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
-import imdb
-
-from src.util import parse_movie_name_from_string, recursive_iterdir
 from subtitles import get_embedded_subtitles, merge_all, VALID_FFMPEG_SUFFIXES
-from util import sanitize_name
+from util import parse_movie_name_from_string, recursive_iterdir, sanitize_name
 
 IMDB_API = imdb.IMDb()
 

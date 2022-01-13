@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from src.movies import process_folder_contents
+from movies import process_folder_contents
 
 
 def __main__():
