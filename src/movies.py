@@ -49,7 +49,7 @@ def query_movie_data_google(movie_filename: str) -> Movie:
     """
     global SELENIUM_BROWSER
     if 'SELENIUM_BROWSER' not in globals():
-        SELENIUM_BROWSER = init_browser(headless=False)
+        SELENIUM_BROWSER = init_browser(headless=True)
 
     # Search for imdb page of the movie
     search_term = 'imdb ' + movie_filename.replace('.', ' ')
