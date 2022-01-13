@@ -85,10 +85,11 @@ def merge_all(video: Path, subtitle_files: List[Path], dest_file: Optional[Path]
     subtitles = [Subtitle(sub.stem, sub) for sub in subtitle_files]
     subtitles = sanitize_subtitle_names(subtitles)
 
-    print(f'Merging')
-    print(f'  - {video.name}')
-    sub_string = '\n  - '.join([f'{sub.file.name} as {sub.name}' for sub in subtitles])
-    print(f'  - {sub_string}')
+    print(f'Merging subtitles into file')
+    if len(subtitles) > 1:
+        print(f'!!! WARNING: merging more than 1 subtitle file !!!')
+        sub_string = '\n      - '.join([f'{sub.file.name} as {sub.name}' for sub in subtitles])
+        print(f'      - {sub_string}')
 
     # Generating ffmpeg command
     sub_files, sub_maps, sub_metadata, i = [], [], [], 0

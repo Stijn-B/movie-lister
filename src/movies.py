@@ -81,13 +81,13 @@ def process_folder_contents(src_folder: Path, dst_folder: Optional[Path], delete
         if path.is_file():
             if path.suffix not in MOVIE_SUFFIXES:
                 continue
-            print(f'file {path.name}')
+            print(f'[file] {path.name}')
             result = process_movie_file(path, dst_folder, delete_source)
-            print(f'=> {result.name}')
+            print(f'=> {result.name}\n')
         elif path.is_dir():
-            print(f'folder {path.name}')
+            print(f'[folder] {path.name}')
             result = process_movie_folder(path, dst_folder, delete_source)
-            print(f'=> {result.name}')
+            print(f'=> {result.name}\n')
         else:
             raise FileNotFoundError
 
