@@ -112,9 +112,8 @@ def process_movie_folder(movie_folder: Path, dst_folder: Optional[Path], delete_
     dst_folder = dst_folder or movie_folder
 
     # Determine the Movie and Subtitle files
-    files = recursive_iterdir(movie_folder)
-    movie_files = [file for file in files if file.suffix in MOVIE_SUFFIXES]
-    subtitle_files = [file for file in files if file.suffix in ['.srt']]
+    movie_files = [file for file in recursive_iterdir(movie_folder) if file.suffix in MOVIE_SUFFIXES]
+    subtitle_files = [file for file in recursive_iterdir(movie_folder) if file.suffix in ['.srt']]
 
     # Select the largest movie file (smaller files are probably samples)
     movie_file = max(movie_files, key=lambda file: file.stat().st_size)
