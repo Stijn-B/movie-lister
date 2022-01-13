@@ -3,6 +3,20 @@
 
 Used to process movie torrent files and folders; sanitizing names (renaming to "movie (year)") and embedding subtitles.
 
+
+## Chromedriver
+
+### Ubuntu
+Install chromedriver with
+
+```
+sudo apt-get install chromium-chromedriver
+```
+
+### Notes
+
+On ubuntu you can use ```whereis chromedriver``` to find out the location of the chromedriver.
+
 ## FFMPEG Commands
 
 #### List all subtitle stream id and name:
